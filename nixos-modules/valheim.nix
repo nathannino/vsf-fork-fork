@@ -176,7 +176,7 @@ in {
         '';
       };
 
-      portals = {
+      portals = lib.mkOption {
         type = with lib.types; nullOr (enum ["casual" "hard" "veryhard"]);
         default = null;
         example = "casual";
