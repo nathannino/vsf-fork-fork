@@ -54,7 +54,7 @@ in {
         client to be modded, as only PC versions can run mods.
       '';
     };
-    
+
     noGraphics = lib.mkOption {
       type = lib.types.bool;
       default = false;
@@ -78,16 +78,6 @@ in {
 
         When not set, defaults to true (visible).
         Set to false to make the server private.
-      '';
-    };
-
-    preset = lib.mkOption {
-      type = with lib.types; nullOr (enum ["easy" "hard" "hardcore" "casual" "hammer" "immersive"]);
-      default = null;
-      example = "hardcore";
-      description = lib.mdDoc ''
-        The preset world modifier, valid options are
-        "easy", "hard", "hardcore", "casual", "hammer" and "immersive".
       '';
     };
 
@@ -142,7 +132,7 @@ in {
         If you use this, all players not on the list will be unable to join.
       '';
     };
-    
+
     bannedList = lib.mkOption {
       type = with lib.types; listOf str;
       default = [];
@@ -157,8 +147,97 @@ in {
       '';
     };
 
+    modifiers = {
+      preset = lib.mkOption {
+        type = with lib.types; nullOr (enum ["easy" "hard" "hardcore" "casual" "hammer" "immersive"]);
+        default = null;
+        example = "hardcore";
+        description = lib.mdDoc ''
+          The preset world modifier, valid options are
+          "easy", "hard", "hardcore", "casual", "hammer" and "immersive".
+        '';
+      };
+
+      combat = lib.mkOption {
+        type = with lib.types; nullOr (enum ["veryeasy" "easy" "hard" "veryhard"]);
+        default = null;
+        example = "veryeasy";
+        description = lib.mdDoc ''
+          Combat difficulty world modifier.
+        '';
+      };
+
+      deathPenalty = lib.mkOption {
+        type = with lib.types; nullOr (enum ["casual" "veryeasy" "easy" "hard" "hardcore"]);
+        default = null;
+        example = "veryeasy";
+        description = lib.mdDoc ''
+          Death Penalty world modifier.
+        '';
+      };
+
+      portals = {
+        type = with lib.types; nullOr (enum ["casual" "hard" "veryhard"]);
+        default = null;
+        example = "casual";
+        description = lib.mdDoc ''
+          Portal usage world modifier.
+        '';
+      };
+
+      raids = lib.mkOption {
+        type = with lib.types; nullOr (enum ["none" "muchless" "less" "more" "muchmore"]);
+        default = null;
+        eample = "less";
+        description = lib.mdDoc ''
+          Raid frequency world modifier.
+        '';
+      };
+
+      resources = lib.mkOption {
+        type = with lib.types; nullOr (enum ["muchless" "less" "more" "muchmore" "most"]);
+        default = null;
+        example = "less";
+        description = lib.mdDoc ''
+          Resource drop rate world modifier.
+        '';
+      };
+
+      noBuildCost = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = lib.mdDoc ''
+          Whether the No Build Cost world modifier is enabled.
+        '';
+      };
+
+      noMap = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = lib.mdDoc ''
+          Whether the No Map world modifier is enabled.
+        '';
+      };
+
+      passiveMobs = lib.mkOption {
+        type = lib.types.bool;
+        deafult = false;
+        description = lib.mdDoc ''
+          Whether the Passive Enemies world modifier is enabled.
+        '';
+      };
+
+      playerEvents = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = lib.mdDoc ''
+          Whether the Player Based Raids world modifier is enabled.
+        '';
+      };
+    };
+
     bepinexMods = lib.mkOption {
-      type = with lib; types.listOf types.package;
+      type = with lib.types; listOf package;
       default = [];
       description = "BepInEx mods to install.";
       example = lib.types.literalExpression ''
@@ -174,7 +253,7 @@ in {
     };
 
     bepinexConfigs = lib.mkOption {
-      type = with lib; types.listOf types.path;
+      type = with lib.types; listOf path;
       default = [];
       description = ''
         Config files for BepInEx mods.
@@ -207,7 +286,10 @@ in {
       installDir = "${stateDir}/valheim-server-modded";
       # If passwordEnvFile is provided then use environment variable, else insert password in unit file directly.
       # Assertions ensure that other cases are not possible.
-      serverPassword = if cfg.passwordEnvFile != null then "\"\${VH_SERVER_PASSWORD}\"" else cfg.password;
+      serverPassword =
+        if cfg.passwordEnvFile != null
+        then "\"\${VH_SERVER_PASSWORD}\""
+        else cfg.password;
     in {
       valheim = {
         description = "Valheim dedicated server";
@@ -236,10 +318,10 @@ in {
               done
             '';
           createListFile = name: list: ''
-              echo "// List of Steam IDs for ${name} ONE per line
-              ${lib.strings.concatStringsSep "\n" list}" > ${stateDir}/.config/unity3d/IronGate/Valheim/${name}
-              chown valheim:valheim ${stateDir}/.config/unity3d/IronGate/Valheim/${name}
-            '';
+            echo "// List of Steam IDs for ${name} ONE per line
+            ${lib.strings.concatStringsSep "\n" list}" > ${stateDir}/.config/unity3d/IronGate/Valheim/${name}
+            chown valheim:valheim ${stateDir}/.config/unity3d/IronGate/Valheim/${name}
+          '';
         in
           ''
             mkdir -p ${stateDir}/.config/unity3d/IronGate/Valheim
@@ -324,10 +406,26 @@ in {
               ++ [
                 "-port \"${builtins.toString cfg.port}\""
                 "-password ${serverPassword}"
-                "-public ${if cfg.public then "1" else "0"}"
+                "-public ${
+                  if cfg.public
+                  then "1"
+                  else "0"
+                }"
               ]
               ++ (lib.lists.optional cfg.crossplay "-crossplay")
-              ++ (lib.lists.optional (cfg.preset != null) "-preset \"${cfg.preset}\"")
+              ++ (lib.lists.optional (cfg.modifiers.preset != null) "-preset \"${cfg.modifiers.preset}\"")
+              ++ (
+                lib.lists.optionals (cfg.modifiers.preset == null) []
+                ++ (lib.lists.optional (cfg.modifiers.combat != null) "-modifier combat \"${cfg.modifiers.combat}\"")
+                ++ (lib.lists.optional (cfg.modifiers.deathPenalty != null) "-modifier deathPenalty \"${cfg.modifiers.deathPenalty}\"")
+                ++ (lib.lists.optional (cfg.modifiers.portals != null) "-modifier portals \"${cfg.modifiers.portals}\"")
+                ++ (lib.lists.optional (cfg.modifiers.raids != null) "-modifier raids \"${cfg.modifiers.raids}\"")
+                ++ (lib.lists.optional (cfg.modifiers.resources != null) "-modifier resources \"${cfg.modifiers.resources}\"")
+                ++ (lib.lists.optional (cfg.modifiers.noBuildCost == true) "-setkey nobuildcost")
+                ++ (lib.lists.optional (cfg.modifiers.noMap == true) "-setkey nomap")
+                ++ (lib.lists.optional (cfg.modifiers.passiveMobs == true) "-setkey passivemobs")
+                ++ (lib.lists.optional (cfg.modifiers.playerEvents == true) "-setkey playerevents")
+              )
               ++ (lib.lists.optional cfg.noGraphics "-nographics"));
         };
       };
