@@ -221,7 +221,7 @@ in {
 
       passiveMobs = lib.mkOption {
         type = lib.types.bool;
-        deafult = false;
+        default = false;
         description = lib.mdDoc ''
           Whether the Passive Enemies world modifier is enabled.
         '';
