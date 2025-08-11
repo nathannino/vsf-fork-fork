@@ -188,7 +188,7 @@ in {
       raids = lib.mkOption {
         type = with lib.types; nullOr (enum ["none" "muchless" "less" "more" "muchmore"]);
         default = null;
-        eample = "less";
+        example = "less";
         description = lib.mdDoc ''
           Raid frequency world modifier.
         '';
