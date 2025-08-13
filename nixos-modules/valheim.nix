@@ -329,7 +329,7 @@ in {
               configs = cfg.bepinexConfigs;
             } ''
               mkdir "$out"
-              if [ -e ${configFolder} ]; then
+              if [ -e $configFolder ]; then
                 cp -r $configFolder/* $out
               fi
               for cfg in $configs; do
