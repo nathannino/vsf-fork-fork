@@ -323,15 +323,17 @@ in {
                 "$out"/manifest.json
             '';
           };
+          modConfigFolder = pkgs.runCommandLocal "valheim-bepinex-config-folder" {
+            configFolder = cfg.bepinexConfigFolder;
+          } ''
+            mkdir "$out"
+            cp -r $configFolder/. $out
+          '';
           modConfigs =
             pkgs.runCommandLocal "valheim-bepinex-configs" {
-              configFolder = cfg.bepinexConfigFolder;
               configs = cfg.bepinexConfigs;
             } ''
               mkdir "$out"
-              if [ -e $configFolder ]; then
-                cp -r $configFolder/* $out
-              fi
               for cfg in $configs; do
                 cp $cfg $out/$(stripHash $cfg)
               done
@@ -368,6 +370,13 @@ in {
 
             # BepInEx *really* doesn't like *any* read-only files.
             chmod -R u+w ${installDir}/BepInEx/plugins/
+          ''
+          + lib.optionalString (cfg.bepinexConfigFolder != null) ''
+            # Install mod config folder.
+            cp -r ${modConfigFolder}/. ${installDir}/BepInEx/config/
+
+            # BepInEx *really* doesn't like *any* read-only files.
+            chmod -R u+w ${installDir}/BepInEx/config/
           ''
           + lib.optionalString (cfg.bepinexConfigs != []) ''
             # Install extra mod configs.
