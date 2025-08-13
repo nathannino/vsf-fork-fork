@@ -259,7 +259,7 @@ in {
         Config files for BepInEx mods.
 
         The filename must be what the given mod is expecting, otherwise it will
-        not be loaded.
+        not be loaded. These files will be loaded after the folder passed to bepinexConfigFolder.
       '';
       example = lib.types.literalExpression ''
         [
@@ -267,6 +267,21 @@ in {
         ]
       '';
     };
+
+    bepinexConfigFolder = lib.mkOption {
+      type = with lib.types; nullOr path;
+      default = null;
+      description = ''
+        Path to a folder containing the config files for BepInEx mods.
+
+        The internal structure of the folder will be retained, so all folder and files
+        names must match what a given mod is expecting, otherwise it will not be loaded.
+        This folder will be loaded before any files passed to bepinexConfigs.
+      '';
+      example = lib.types.literalExpression lib.types.literalExpression ''
+        ./path/to/config
+      ''
+    }
   };
 
   config = lib.mkIf cfg.enable {
@@ -310,9 +325,13 @@ in {
           };
           modConfigs =
             pkgs.runCommandLocal "valheim-bepinex-configs" {
+              configFolder = cfg.bepinexConfigFolder;
               configs = cfg.bepinexConfigs;
             } ''
               mkdir "$out"
+              if [ -e ${configFolder} ]; then
+                cp -r $configFolder/* $out
+              fi
               for cfg in $configs; do
                 cp $cfg $out/$(stripHash $cfg)
               done
