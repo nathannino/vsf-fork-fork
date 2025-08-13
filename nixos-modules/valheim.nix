@@ -280,8 +280,8 @@ in {
       '';
       example = lib.types.literalExpression lib.types.literalExpression ''
         ./path/to/config
-      ''
-    }
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
