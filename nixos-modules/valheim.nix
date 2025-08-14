@@ -317,10 +317,17 @@ in {
             name = "valheim-bepinex-mods";
             paths = cfg.bepinexMods;
             postBuild = ''
-              rm -f \
+              # Drag improperly packaged plugins to the root.
+              cp -r "$out"/[pP]lugins/. "$out"
+              # Clean up
+              rm -rf \
                 "$out"/*.md \
                 "$out"/icon.png \
-                "$out"/manifest.json
+                "$out"/manifest.json \
+                "$out"/LICENSE \
+                "$out"/[cC]onfig \
+                "$out"/[pP]lugins \
+                "$out"/[tT]ranslations
             '';
           };
           modConfigFolder = pkgs.runCommandLocal "valheim-bepinex-config-folder" {
