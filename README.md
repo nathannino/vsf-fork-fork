@@ -1,5 +1,7 @@
 # Copy Notice
-This repository was originally forked from [https://github.com/aidalgol/valheim-server-flake](aidalgol/valheim-server-flake)
+Local fork from [https://codeberg.org/JU12000/valheim-server-flake](https://codeberg.org/JU12000/valheim-server-flake) to update the version... I don't think upstream is maintained anymore, and I don't think this repo should be considered maintained either.
+
+The repository this repository is a fork of was originally forked from [https://github.com/aidalgol/valheim-server-flake](https://github.com/aidalgol/valheim-server-flake)
 
 
 # Valheim Server Flake
