@@ -21,7 +21,7 @@
       import nixpkgs {
         inherit system;
         overlays = [
-          steam-fetcher.overlay.default
+          steam-fetcher.overlay
           self.overlays.default
         ];
       };
